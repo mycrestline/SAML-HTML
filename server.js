@@ -45,13 +45,17 @@ passport.use(samlStrategy);
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
+const isSecureEnv = Boolean(process.env.RENDER) || process.env.NODE_ENV === "production";
+
 const app = express();
+app.set("trust proxy", 1);
 app.use(express.urlencoded({ extended: false }));
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "dev-secret-change-me",
     resave: false,
     saveUninitialized: false,
+    cookie: isSecureEnv ? { secure: true, sameSite: "none" } : {},
   })
 );
 app.use(passport.initialize());
