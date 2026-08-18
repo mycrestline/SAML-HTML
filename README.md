@@ -56,6 +56,37 @@ that policy to this app under the app's **Sign On** tab
 Open http://localhost:3000 — you should be redirected to Okta, prompted
 for Okta Verify, and land back on the welcome page signed in.
 
+## 6. Deploy to Render
+
+The repo is connected to Render with:
+- **Build Command:** `npm install`
+- **Start Command:** `node server.js` (or `npm start`)
+
+Render only runs the code from git — it never sees your local `.env`
+(it's gitignored on purpose so secrets don't end up in the public repo).
+You must set the same variables under the Render service's **Environment**
+tab manually:
+
+| Key | Value |
+|---|---|
+| `SESSION_SECRET` | a random string |
+| `SP_ENTITY_ID` | `https://saml-html.onrender.com/metadata` |
+| `SP_ACS_URL` | `https://saml-html.onrender.com/login/callback` |
+| `IDP_SSO_URL` | same value as local `.env` |
+| `IDP_ISSUER` | same value as local `.env` |
+| `IDP_CERT` | same value as local `.env` |
+
+(Skip `PORT` — Render sets it automatically and `server.js` already reads
+`process.env.PORT`.)
+
+Then update the Okta app itself to match the live URL:
+- **Single sign-on URL (ACS URL):** `https://saml-html.onrender.com/login/callback`
+- **Audience URI (SP Entity ID):** `https://saml-html.onrender.com/metadata`
+
+Without both the Render env vars and the matching Okta app URLs, `/login`
+will 500 (missing `IDP_SSO_URL`) or Okta will reject the response
+(Audience/ACS mismatch).
+
 ## Endpoints
 
 | Route              | Purpose                                      |
